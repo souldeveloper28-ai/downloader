@@ -1,0 +1,92 @@
+name: 🚀 Downloader PRO Engine
+
+on:
+  push:
+    paths:
+      - 'requests.json'
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"   # auto run every 15 min
+
+jobs:
+  downloader:
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    steps:
+      # 🔽 1. Checkout repo
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      # 🔽 2. Setup Python
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # 🔽 3. Cache dependencies
+      - name: ⚡ Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip
+
+      # 🔽 4. Install dependencies
+      - name: 📦 Install deps
+        run: |
+          pip install --upgrade pip
+          pip install yt-dlp requests
+          sudo apt-get update
+          sudo apt-get install ffmpeg -y
+
+      # 🔽 5. Debug info
+      - name: 🔍 System info
+        run: |
+          python --version
+          yt-dlp --version
+          ffmpeg -version
+
+      # 🔽 6. Ensure folders exist
+      - name: 📂 Setup folders
+        run: |
+          mkdir -p downloads
+          touch requests.json
+          touch status.json
+
+      # 🔽 7. Run downloader (retry system)
+      - name: 🚀 Run downloader
+        run: |
+          for i in 1 2 3; do
+            echo "Try $i"
+            python downloader.py && break || sleep 5
+          done
+
+      # 🔽 8. Show downloaded files
+      - name: 📊 List files
+        run: |
+          ls -lh downloads || echo "No files"
+
+      # 🔽 9. Commit changes safely
+      - name: 💾 Commit & Push
+        run: |
+          git config user.name "downloader-bot"
+          git config user.email "bot@users.noreply.github.com"
+
+          git add downloads/*
+          git add status.json
+          git add requests.json
+
+          git commit -m "⚡ Auto download update [$(date)]" || echo "No changes"
+
+          git pull --rebase
+          git push
+
+      # 🔽 10. Cleanup old files (optional)
+      - name: 🧹 Cleanup old files
+        run: |
+          find downloads -type f -mtime +2 -delete || true
+
+      # 🔽 11. Final log
+      - name: ✅ Done
+        run: echo "🔥 Workflow completed successfully"
