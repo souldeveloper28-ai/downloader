@@ -1,25 +1,18 @@
-name: 🔥 ULTRA Downloader 20X
+name: 🔥 ULTRA Downloader LOG FIX
 
 on:
   push:
     paths:
       - 'requests.json'
-  schedule:
-    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 jobs:
-  ultra:
+  run:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    strategy:
-      fail-fast: false
-      matrix:
-        engine: [1,2,3,4,5,6,7,8,9,10]
-
     steps:
-      - name: 🔽 Checkout
+      - name: 📥 Checkout
         uses: actions/checkout@v3
 
       - name: 🐍 Setup Python
@@ -27,71 +20,40 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: ⚡ Install deps
+      - name: 📦 Install deps
         run: |
-          pip install yt-dlp requests
+          pip install yt-dlp
           sudo apt-get update
           sudo apt-get install ffmpeg -y
 
-      # 🔥 ENGINE LOOP (each runner = engine)
-      - name: 🚀 Run Engine ${{ matrix.engine }}
+      # 🔥 FORCE LOGS ENABLE
+      - name: 🚀 Run Downloader (FULL LOGS)
         run: |
-          echo "ENGINE ${{ matrix.engine }} START"
+          echo "========== START =========="
+          python -u downloader.py
+          echo "========== END =========="
 
-          for i in 1 2; do
-            echo "Try $i"
-            python downloader.py && break || sleep 3
-          done
-
-          echo "ENGINE ${{ matrix.engine }} DONE"
-
-      - name: 📊 List files
-        run: ls -lh downloads || echo "no files"
-
-      - name: 💾 Commit Engine ${{ matrix.engine }}
+      # 🔥 SHOW FILES
+      - name: 📂 Check downloads
         run: |
-          git config user.name "ultra-bot"
+          echo "FILES:"
+          ls -lah downloads || echo "No files found"
+
+      # 🔥 SHOW JSON
+      - name: 📊 Show status.json
+        run: |
+          echo "STATUS:"
+          cat status.json || echo "No status"
+
+      # 🔥 SAFE COMMIT
+      - name: 💾 Commit
+        run: |
+          git config user.name "bot"
           git config user.email "bot@bot.com"
 
           git add . || true
 
-          git commit -m "engine ${{ matrix.engine }} update" || echo "no change"
-
-          git pull --rebase || true
-          git push || true
-
-  # 🔥 EXTRA ENGINES (background boosters)
-  booster:
-    runs-on: ubuntu-latest
-    needs: ultra
-    strategy:
-      matrix:
-        boost: [A,B,C,D,E,F,G,H,I,J]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - run: pip install yt-dlp
-      - run: sudo apt-get install ffmpeg -y
-
-      - name: ⚡ Booster Engine ${{ matrix.boost }}
-        run: |
-          echo "BOOST ENGINE ${{ matrix.boost }}"
-
-          python downloader.py || true
-
-      - name: 💾 Booster Commit
-        run: |
-          git config user.name "boost-bot"
-          git config user.email "bot@bot.com"
-
-          git add . || true
-
-          git commit -m "boost ${{ matrix.boost }}" || echo "no change"
+          git commit -m "log update" || echo "no change"
 
           git pull --rebase || true
           git push || true
