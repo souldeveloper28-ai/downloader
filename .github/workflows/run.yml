@@ -1,92 +1,97 @@
-name: 🚀 Downloader PRO Engine
+name: 🔥 ULTRA Downloader 20X
 
 on:
   push:
     paths:
       - 'requests.json'
-  workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"   # auto run every 15 min
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
 
 jobs:
-  downloader:
+  ultra:
     runs-on: ubuntu-latest
-
     timeout-minutes: 30
 
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [1,2,3,4,5,6,7,8,9,10]
+
     steps:
-      # 🔽 1. Checkout repo
-      - name: 📥 Checkout
+      - name: 🔽 Checkout
         uses: actions/checkout@v3
 
-      # 🔽 2. Setup Python
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # 🔽 3. Cache dependencies
-      - name: ⚡ Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip
-
-      # 🔽 4. Install dependencies
-      - name: 📦 Install deps
+      - name: ⚡ Install deps
         run: |
-          pip install --upgrade pip
           pip install yt-dlp requests
           sudo apt-get update
           sudo apt-get install ffmpeg -y
 
-      # 🔽 5. Debug info
-      - name: 🔍 System info
+      # 🔥 ENGINE LOOP (each runner = engine)
+      - name: 🚀 Run Engine ${{ matrix.engine }}
         run: |
-          python --version
-          yt-dlp --version
-          ffmpeg -version
+          echo "ENGINE ${{ matrix.engine }} START"
 
-      # 🔽 6. Ensure folders exist
-      - name: 📂 Setup folders
-        run: |
-          mkdir -p downloads
-          touch requests.json
-          touch status.json
-
-      # 🔽 7. Run downloader (retry system)
-      - name: 🚀 Run downloader
-        run: |
-          for i in 1 2 3; do
+          for i in 1 2; do
             echo "Try $i"
-            python downloader.py && break || sleep 5
+            python downloader.py && break || sleep 3
           done
 
-      # 🔽 8. Show downloaded files
+          echo "ENGINE ${{ matrix.engine }} DONE"
+
       - name: 📊 List files
+        run: ls -lh downloads || echo "no files"
+
+      - name: 💾 Commit Engine ${{ matrix.engine }}
         run: |
-          ls -lh downloads || echo "No files"
+          git config user.name "ultra-bot"
+          git config user.email "bot@bot.com"
 
-      # 🔽 9. Commit changes safely
-      - name: 💾 Commit & Push
+          git add . || true
+
+          git commit -m "engine ${{ matrix.engine }} update" || echo "no change"
+
+          git pull --rebase || true
+          git push || true
+
+  # 🔥 EXTRA ENGINES (background boosters)
+  booster:
+    runs-on: ubuntu-latest
+    needs: ultra
+    strategy:
+      matrix:
+        boost: [A,B,C,D,E,F,G,H,I,J]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - run: pip install yt-dlp
+      - run: sudo apt-get install ffmpeg -y
+
+      - name: ⚡ Booster Engine ${{ matrix.boost }}
         run: |
-          git config user.name "downloader-bot"
-          git config user.email "bot@users.noreply.github.com"
+          echo "BOOST ENGINE ${{ matrix.boost }}"
 
-          git add downloads/*
-          git add status.json
-          git add requests.json
+          python downloader.py || true
 
-          git commit -m "⚡ Auto download update [$(date)]" || echo "No changes"
-
-          git pull --rebase
-          git push
-
-      # 🔽 10. Cleanup old files (optional)
-      - name: 🧹 Cleanup old files
+      - name: 💾 Booster Commit
         run: |
-          find downloads -type f -mtime +2 -delete || true
+          git config user.name "boost-bot"
+          git config user.email "bot@bot.com"
 
-      # 🔽 11. Final log
-      - name: ✅ Done
-        run: echo "🔥 Workflow completed successfully"
+          git add . || true
+
+          git commit -m "boost ${{ matrix.boost }}" || echo "no change"
+
+          git pull --rebase || true
+          git push || true
