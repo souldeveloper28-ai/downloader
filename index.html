@@ -2,73 +2,136 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Downloader PRO MAX</title>
+<title>Downloader ULTRA X</title>
 
 <style>
-body {background:#020617;color:white;font-family:sans-serif;text-align:center;}
-.box {
-  background:#0f172a;
-  padding:30px;
-  border-radius:20px;
-  margin-top:50px;
+* {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+
+body {
+  background: radial-gradient(circle at top, #020617, #000);
+  color: white;
+  text-align: center;
+}
+
+.container {
+  margin-top: 80px;
+}
+
+.card {
   display:inline-block;
-  box-shadow:0 0 40px #22c55e55;
+  padding:40px;
+  border-radius:25px;
+  background: rgba(15,23,42,0.9);
+  box-shadow: 0 0 80px #22c55e33;
+  backdrop-filter: blur(10px);
 }
+
+h1 {
+  font-size:32px;
+  margin-bottom:20px;
+  text-shadow:0 0 20px #22c55e;
+}
+
 input, select {
-  padding:12px;
-  border-radius:10px;
+  width:280px;
+  padding:14px;
+  margin:10px;
   border:none;
-  margin:5px;
-  width:250px;
-}
-button {
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
-  background:#22c55e;
+  border-radius:12px;
+  background:#111827;
   color:white;
-  cursor:pointer;
+  outline:none;
 }
-button:hover {background:#16a34a;}
-a {color:#38bdf8;text-decoration:none;}
-.footer {margin-top:40px;font-size:14px;opacity:0.8;}
+
+button {
+  padding:14px 25px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(45deg,#22c55e,#4ade80);
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover {
+  transform:scale(1.05);
+  box-shadow:0 0 20px #22c55e;
+}
+
+#msg {
+  margin-top:15px;
+  color:#facc15;
+}
+
+#result a {
+  display:block;
+  margin:10px;
+  padding:10px;
+  background:#111827;
+  border-radius:10px;
+  transition:0.3s;
+}
+
+#result a:hover {
+  background:#22c55e;
+  color:black;
+}
+
+.footer {
+  margin-top:40px;
+  opacity:0.7;
+}
 </style>
 </head>
 
 <body>
 
-<div class="box">
-<h1>🚀 Downloader PRO MAX++</h1>
+<div class="container">
+<div class="card">
 
-<input id="url" placeholder="Paste link"><br>
+<h1>🚀 Downloader ULTRA X</h1>
+
+<input id="url" placeholder="Paste YouTube / Insta / PDF link"><br>
 
 <select id="type">
-  <option value="video">Video</option>
-  <option value="audio">Audio (MP3)</option>
+  <option value="video">🎬 Video</option>
+  <option value="audio">🎵 Audio MP3</option>
 </select><br>
 
-<button onclick="send()">Download</button>
+<button onclick="send()">⚡ Add to Queue</button>
 
 <p id="msg"></p>
 <div id="result"></div>
+
 </div>
 
 <div class="footer">
-  <p>⚡ Created by <b>Yash Builds</b></p>
-  <p>📸 Follow on Instagram:</p>
-  <a href="https://www.instagram.com/soul_faith.x?igsh=NXFlYjAyYTd4cnZh" target="_blank">
-    @soul_faith.x
-  </a>
+⚡ Created by <b>Yash Builds</b><br>
+📸 <a href="https://www.instagram.com/soul_faith.x" target="_blank">@soul_faith.x</a>
+</div>
 </div>
 
 <script>
-const TOKEN = "ghp_s42ncQ0ahCbqK1LDDtgWlPfE7r7dXs486Y56";
+const TOKEN = "PASTE_NEW_TOKEN";
 
 async function send(){
   let url = document.getElementById("url").value;
   let type = document.getElementById("type").value;
 
-  let content = btoa(JSON.stringify([{url, type}]));
+  document.getElementById("msg").innerText = "⚡ Sending...";
+
+  let res = await fetch("https://api.github.com/repos/souldeveloper28-ai/downloader/contents/requests.json");
+  let data = await res.json();
+
+  let old = [];
+  if(data.content){
+    old = JSON.parse(atob(data.content));
+  }
+
+  old.push({url, type});
+
+  let newContent = btoa(JSON.stringify(old));
 
   await fetch("https://api.github.com/repos/souldeveloper28-ai/downloader/contents/requests.json", {
     method: "PUT",
@@ -77,31 +140,28 @@ async function send(){
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      message: "new request",
-      content: content
+      message: "ultra queue",
+      content: newContent,
+      sha: data.sha
     })
   });
 
   document.getElementById("msg").innerText = "⏳ Processing...";
-  checkStatus();
 }
 
-async function checkStatus(){
+async function check(){
   let res = await fetch("status.json?"+Date.now());
   let data = await res.json();
 
-  if(data.length > 0){
-    let html = "<h3>Downloads:</h3>";
-    data.forEach(d => {
-      html += `<a href="downloads/${d}" target="_blank">⬇ ${d}</a><br>`;
-    });
-    document.getElementById("result").innerHTML = html;
-  } else {
-    setTimeout(checkStatus, 5000);
-  }
+  let html="";
+  data.forEach(d=>{
+    html += `<a href="downloads/${d}" target="_blank">⬇ ${d}</a>`;
+  });
+
+  document.getElementById("result").innerHTML = html;
 }
 
-setInterval(checkStatus, 8000);
+setInterval(check,4000);
 </script>
 
 </body>
