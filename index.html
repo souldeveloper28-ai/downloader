@@ -5,13 +5,7 @@
 <title>Downloader PRO MAX</title>
 
 <style>
-body {
-  background:#020617;
-  color:white;
-  font-family:sans-serif;
-  text-align:center;
-}
-
+body {background:#020617;color:white;font-family:sans-serif;text-align:center;}
 .box {
   background:#0f172a;
   padding:30px;
@@ -20,7 +14,6 @@ body {
   display:inline-block;
   box-shadow:0 0 40px #22c55e55;
 }
-
 input, select {
   padding:12px;
   border-radius:10px;
@@ -28,7 +21,6 @@ input, select {
   margin:5px;
   width:250px;
 }
-
 button {
   padding:12px 20px;
   border:none;
@@ -37,18 +29,9 @@ button {
   color:white;
   cursor:pointer;
 }
-
-button:hover {
-  background:#16a34a;
-}
-
-a { color:#38bdf8; text-decoration:none; }
-
-.footer {
-  margin-top:40px;
-  font-size:14px;
-  opacity:0.8;
-}
+button:hover {background:#16a34a;}
+a {color:#38bdf8;text-decoration:none;}
+.footer {margin-top:40px;font-size:14px;opacity:0.8;}
 </style>
 </head>
 
@@ -79,16 +62,18 @@ a { color:#38bdf8; text-decoration:none; }
 </div>
 
 <script>
+const TOKEN = "ghp_s42ncQ0ahCbqK1LDDtgWlPfE7r7dXs486Y56";
+
 async function send(){
   let url = document.getElementById("url").value;
   let type = document.getElementById("type").value;
 
   let content = btoa(JSON.stringify([{url, type}]));
 
-  await fetch("https://api.github.com/repos/USERNAME/REPO/contents/requests.json", {
+  await fetch("https://api.github.com/repos/souldeveloper28-ai/downloader/contents/requests.json", {
     method: "PUT",
     headers: {
-      "Authorization": "token YOUR_GITHUB_TOKEN",
+      "Authorization": "token " + TOKEN,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
@@ -97,7 +82,7 @@ async function send(){
     })
   });
 
-  document.getElementById("msg").innerText = "⏳ Processing... wait 1-2 min";
+  document.getElementById("msg").innerText = "⏳ Processing...";
   checkStatus();
 }
 
