@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downloader PRO MAX</title>
+
+<style>
+body {
+  background:#020617;
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+}
+
+.box {
+  background:#0f172a;
+  padding:30px;
+  border-radius:20px;
+  margin-top:50px;
+  display:inline-block;
+  box-shadow:0 0 40px #22c55e55;
+}
+
+input, select {
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin:5px;
+  width:250px;
+}
+
+button {
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:white;
+  cursor:pointer;
+}
+
+button:hover {
+  background:#16a34a;
+}
+
+a { color:#38bdf8; text-decoration:none; }
+
+.footer {
+  margin-top:40px;
+  font-size:14px;
+  opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h1>🚀 Downloader PRO MAX++</h1>
+
+<input id="url" placeholder="Paste link"><br>
+
+<select id="type">
+  <option value="video">Video</option>
+  <option value="audio">Audio (MP3)</option>
+</select><br>
+
+<button onclick="send()">Download</button>
+
+<p id="msg"></p>
+<div id="result"></div>
+</div>
+
+<div class="footer">
+  <p>⚡ Created by <b>Yash Builds</b></p>
+  <p>📸 Follow on Instagram:</p>
+  <a href="https://www.instagram.com/soul_faith.x?igsh=NXFlYjAyYTd4cnZh" target="_blank">
+    @soul_faith.x
+  </a>
+</div>
+
+<script>
+async function send(){
+  let url = document.getElementById("url").value;
+  let type = document.getElementById("type").value;
+
+  let content = btoa(JSON.stringify([{url, type}]));
+
+  await fetch("https://api.github.com/repos/USERNAME/REPO/contents/requests.json", {
+    method: "PUT",
+    headers: {
+      "Authorization": "token YOUR_GITHUB_TOKEN",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: "new request",
+      content: content
+    })
+  });
+
+  document.getElementById("msg").innerText = "⏳ Processing... wait 1-2 min";
+  checkStatus();
+}
+
+async function checkStatus(){
+  let res = await fetch("status.json?"+Date.now());
+  let data = await res.json();
+
+  if(data.length > 0){
+    let html = "<h3>Downloads:</h3>";
+    data.forEach(d => {
+      html += `<a href="downloads/${d}" target="_blank">⬇ ${d}</a><br>`;
+    });
+    document.getElementById("result").innerHTML = html;
+  } else {
+    setTimeout(checkStatus, 5000);
+  }
+}
+
+setInterval(checkStatus, 8000);
+</script>
+
+</body>
+</html>
