@@ -1,60 +1,80 @@
-import json, os, subprocess
+import json
+import os
+import subprocess
+import time
 
-print("🚀 ULTRA START")
+print("🚀 Downloader Engine Start")
 
+# ensure folder
+os.makedirs("downloads", exist_ok=True)
+
+# load requests
 try:
     with open("requests.json") as f:
         data = json.load(f)
 except:
     data = []
 
-os.makedirs("downloads", exist_ok=True)
+if not data:
+    print("⚠️ No requests found")
+    exit()
 
 files = []
 
-# process max 3 at a time (faster + safe)
-batch = data[:3]
-
-for i, item in enumerate(batch):
-    url = item["url"]
+for i, item in enumerate(data):
+    url = item.get("url")
     dtype = item.get("type", "video")
 
-    print("Downloading:", url)
+    if not url:
+        continue
 
-    out = f"downloads/file_{i}.%(ext)s"
+    print(f"🎯 Processing: {url}")
+
+    file_id = f"file_{int(time.time())}_{i}"
+    output = f"downloads/{file_id}.%(ext)s"
 
     try:
         if dtype == "audio":
-            subprocess.run([
+            cmd = [
                 "yt-dlp",
                 "-x",
                 "--audio-format", "mp3",
                 "--no-playlist",
-                "-o", out,
+                "--force-overwrites",
+                "--no-warnings",
+                "-o", output,
                 url
-            ], check=True)
+            ]
         else:
-            subprocess.run([
+            cmd = [
                 "yt-dlp",
                 "--no-playlist",
-                "-o", out,
+                "--force-overwrites",
+                "--no-warnings",
+                "-o", output,
                 url
-            ], check=True)
+            ]
 
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
+
+        # check downloaded file
         for f in os.listdir("downloads"):
-            if f.startswith(f"file_{i}"):
+            if file_id in f:
+                print(f"✅ Downloaded: {f}")
                 files.append(f)
 
     except Exception as e:
-        print("ERROR:", e)
+        print("❌ ERROR:", e)
 
-# remaining queue
-remaining = data[3:]
-
-with open("requests.json", "w") as f:
-    json.dump(remaining, f)
-
+# save status
 with open("status.json", "w") as f:
     json.dump(files, f)
 
-print("✅ DONE")
+# clear processed requests
+with open("requests.json", "w") as f:
+    json.dump([], f)
+
+print("🔥 All Done")
